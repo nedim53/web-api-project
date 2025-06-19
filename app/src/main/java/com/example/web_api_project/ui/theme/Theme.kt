@@ -1,25 +1,30 @@
 package com.example.web_api_project.ui.theme
 
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-
-private val LightColorScheme = lightColorScheme(
-    primary = LightPrimary,
-    onPrimary = LightOnPrimary,
-    secondary = LightSecondary,
-    onSecondary = LightOnSecondary,
-    background = LightBackground,
-    surface = LightSurface,
-)
+import androidx.compose.ui.graphics.Color
 
 @Composable
-fun WebApiProjectTheme(
-    content: @Composable () -> Unit
-) {
+fun WebApiTheme(content: @Composable () -> Unit) {
+    val colorScheme = lightColorScheme(
+        primary = Primary,
+        onPrimary = OnPrimary,
+        secondary = Secondary,
+        onSecondary = OnSecondary,
+        tertiary = Tertiary,
+        onTertiary = OnTertiary,
+        background = Background,
+        surface = Surface,
+        error = Error,
+        onError = Color.White,
+        onBackground = Primary,
+        onSurface = Primary,
+    )
     MaterialTheme(
-        colorScheme = LightColorScheme,
-        typography = Typography,
+        colorScheme = colorScheme,
+        typography = WebApiTypography,
         content = content
     )
 }

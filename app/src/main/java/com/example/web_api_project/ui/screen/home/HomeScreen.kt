@@ -14,12 +14,14 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.web_api_project.domain.model.Dataset
 import com.example.web_api_project.utils.Resource
-import com.example.web_api_project.ui.theme.WebApiProjectTheme
+import com.example.web_api_project.ui.theme.WebApiTheme
+import androidx.compose.material3.ExperimentalMaterial3Api
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen() {
     val viewModel: HomeViewModel = viewModel()
-    WebApiProjectTheme {
+    WebApiTheme {
         val state by viewModel.state.collectAsState()
         Scaffold(
             topBar = {
@@ -37,12 +39,15 @@ fun HomeScreen() {
                     is Resource.Loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                     }
-                    is Resource.Success -> LazyColumn(
-                        contentPadding = PaddingValues(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        items((state as Resource.Success<List<Dataset>>).data) { item ->
-                            DatasetCard(item)
+                    is Resource.Success -> {
+                        val data = (state as Resource.Success<List<Dataset>>).data ?: emptyList()
+                        LazyColumn(
+                            contentPadding = PaddingValues(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            items(data) { item ->
+                                DatasetCard(item)
+                            }
                         }
                     }
                     is Resource.Error -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -54,6 +59,7 @@ fun HomeScreen() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DatasetCard(dataset: Dataset) {
     Card(

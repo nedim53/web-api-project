@@ -14,7 +14,9 @@ object DatabaseService {
                 context.applicationContext,
                 AppDatabase::class.java,
                 "web_api_database"
-            ).build()
+            )
+            .fallbackToDestructiveMigration()
+            .build()
             INSTANCE = instance
             instance
         }
