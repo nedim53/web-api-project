@@ -27,16 +27,11 @@ class NewbornRepository(
             val response = api.getNewbornData(NewbornRequest(year = year.toString(), month = null, entity = entity))
             if (response.isSuccessful) {
                 val data = response.body()?.result ?: emptyList()
-                val oldFavorites = dao.getFavorites()
-                val favoriteKeys = oldFavorites.map { it.uniqueKey() }.toSet()
-                dao.clearAll()
-                dao.insertAll(data.map { entry ->
-                    val isFav = entry.uniqueKey() in favoriteKeys
-                    entry.toEntity(isFavorite = isFav)
-                })
+                data.forEach { entry ->
+                    dao.upsert(entry.toEntity(isFavorite = false))
+                }
                 emit(NewbornResource.Success(data.map { entry ->
-                    val isFav = entry.uniqueKey() in favoriteKeys
-                    entry.copy(isFavorite = isFav)
+                    entry.copy(isFavorite = false)
                 }))
             } else {
                 val errorBody = response.errorBody()?.string()
@@ -51,19 +46,6 @@ class NewbornRepository(
                 emit(NewbornResource.Error("Greška: ${e.localizedMessage}"))
             }
         }
-    }
-
-    suspend fun getFavorites(): List<NewbornEntry> = dao.getFavorites().map { it.toDomain() }
-    suspend fun setFavorite(id: Int) = dao.setFavorite(id)
-    suspend fun unsetFavorite(id: Int) = dao.unsetFavorite(id)
-    suspend fun toggleFavorite(id: Int, isFav: Boolean) {
-        if (isFav) dao.unsetFavorite(id) else dao.setFavorite(id)
-    }
-
-    fun observeFavorites(): Flow<List<NewbornEntry>> = dao.observeFavorites().map { list -> list.map { it.toDomain() } }
-
-    suspend fun toggleFavoriteByFields(entity: String, municipality: String?, year: Int, month: Int, isFav: Boolean) {
-        dao.setFavoriteByFields(entity, municipality, year, month, !isFav)
     }
 }
 

@@ -20,11 +20,18 @@ import androidx.navigation.NavController
 import com.example.web_api_project.data.repository.NewbornResource
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.Star
+import androidx.compose.ui.graphics.Color
+import com.example.web_api_project.ui.UserSessionViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NewbornListScreen(
     navController: NavController,
+    userSessionViewModel: UserSessionViewModel,
     viewModel: NewbornViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
 ) {
     val context = LocalContext.current
@@ -33,8 +40,19 @@ fun NewbornListScreen(
     var entity by remember { mutableStateOf("FBiH") }
     var municipality by remember { mutableStateOf("") }
     val state by viewModel.state.collectAsState()
+    val favoriteIds by viewModel.favoriteIds.collectAsState()
     val token = "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIyMDk1IiwibmJmIjoxNzUwMjY5OTE4LCJleHAiOjE3NTAzNTYzMTgsImlhdCI6MTc1MDI2OTkxOH0.P5Q6T786VSUZmanQDMKBN60wtjB6QT8dRyLGc-e_XROEaaMVrIdp8VweqIIZWIWlUkrB8chKxztxD7BIbi6A6w"
     var isRefreshing by remember { mutableStateOf(false) }
+
+    val email by userSessionViewModel.userEmail.collectAsState()
+    val emailValue = email
+    LaunchedEffect(emailValue) {
+        if (emailValue == null) {
+            userSessionViewModel.login("test@email.com")
+        } else {
+            viewModel.refreshUserAndFavorites(emailValue)
+        }
+    }
 
     // Učitaj preferencije iz DataStore na početku
     LaunchedEffect(Unit) {
@@ -85,19 +103,30 @@ fun NewbornListScreen(
                     val data = (state as NewbornResource.Success).data
                     LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         items(data) { entry ->
+                            val isFav = favoriteIds.contains(entry.id)
                             Card(
                                 Modifier
                                     .fillMaxWidth()
                                     .clickable {
-                                        navController.navigate(
-                                            "details/${entry.entity}/${entry.canton}/${entry.municipality}/${entry.institution}/${entry.year}/${entry.month}/${entry.dateUpdate}/${entry.maleTotal}/${entry.femaleTotal}/${entry.total}"
-                                        )
+                                        navController.navigate("details/${entry.id}")
                                     }
                             ) {
-                                Column(Modifier.padding(12.dp)) {
-                                    Text(text = "${entry.year}/${entry.month} - ${entry.municipality}", style = MaterialTheme.typography.titleMedium)
-                                    Text(text = "Ukupno: ${entry.total} (M: ${entry.maleTotal}, Ž: ${entry.femaleTotal})")
-                                    Text(text = "Ažurirano: ${entry.dateUpdate}")
+                                Row(
+                                    Modifier.padding(12.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Column(Modifier.weight(1f)) {
+                                        Text(text = "${entry.year}/${entry.month} - ${entry.municipality}", style = MaterialTheme.typography.titleMedium)
+                                        Text(text = "Ukupno: ${entry.total} (M: ${entry.maleTotal}, Ž: ${entry.femaleTotal})")
+                                        Text(text = "Ažurirano: ${entry.dateUpdate}")
+                                    }
+                                    IconButton(onClick = { viewModel.toggleFavorite(entry) }) {
+                                        Icon(
+                                            imageVector = if (isFav) Icons.Filled.Star else Icons.Outlined.Star,
+                                            contentDescription = if (isFav) "Ukloni iz favorita" else "Dodaj u favorite",
+                                            tint = if (isFav) Color.Yellow else Color.Gray
+                                        )
+                                    }
                                 }
                             }
                         }

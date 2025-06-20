@@ -24,49 +24,20 @@ fun AppNavGraph(navController: NavHostController = rememberNavController(), user
         composable("login") { LoginScreen(navController, userSessionViewModel) }
         composable("register") { RegisterScreen(navController) }
         composable("splash") { SplashScreen(navController) }
-        composable("home") { NewbornListScreen(navController) }
-        composable("favorites") { FavoritesScreen(navController) }
+        composable("home") { NewbornListScreen(navController, userSessionViewModel) }
+        composable("favorites") { FavoritesScreen(navController, userSessionViewModel) }
         composable("profile") { ProfileScreen(navController, userSessionViewModel) }
         composable("settings") { SettingsScreen() }
         composable(
-            "details/{entity}/{canton}/{municipality}/{institution}/{year}/{month}/{dateUpdate}/{maleTotal}/{femaleTotal}/{total}",
-            arguments = listOf(
-                navArgument("entity") { type = NavType.StringType },
-                navArgument("canton") { type = NavType.StringType },
-                navArgument("municipality") { type = NavType.StringType },
-                navArgument("institution") { type = NavType.StringType },
-                navArgument("year") { type = NavType.IntType },
-                navArgument("month") { type = NavType.IntType },
-                navArgument("dateUpdate") { type = NavType.StringType },
-                navArgument("maleTotal") { type = NavType.IntType },
-                navArgument("femaleTotal") { type = NavType.IntType },
-                navArgument("total") { type = NavType.IntType }
-            )
+            "details/{id}",
+            arguments = listOf(navArgument("id") { type = NavType.IntType })
         ) { backStack ->
-            val args = backStack.arguments!!
-            val context = androidx.compose.ui.platform.LocalContext.current
-            val newborn = com.example.web_api_project.data.local.entity.NewbornEntity(
-                entity = args.getString("entity") ?: "",
-                canton = args.getString("canton"),
-                municipality = args.getString("municipality"),
-                institution = args.getString("institution"),
-                year = args.getInt("year"),
-                month = args.getInt("month"),
-                dateUpdate = args.getString("dateUpdate") ?: "",
-                maleTotal = args.getInt("maleTotal"),
-                femaleTotal = args.getInt("femaleTotal"),
-                total = args.getInt("total")
-            )
-            val repository = com.example.web_api_project.data.repository.NewbornRepository(
-                api = com.example.web_api_project.data.remote.newborn.NewbornRetrofitClient.getClient(),
-                dao = com.example.web_api_project.data.local.DatabaseService.getDatabase(context).newbornDao()
-            )
+            val id = backStack.arguments!!.getInt("id")
             DetailsScreen(
                 navController = navController,
-                newborn = newborn,
-                repository = repository
+                newbornId = id,
+                userSessionViewModel = userSessionViewModel
             )
         }
-        // favorites, settings...
     }
 } 

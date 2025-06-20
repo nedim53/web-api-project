@@ -18,21 +18,32 @@ fun LoginScreen(navController: NavController, userSessionViewModel: UserSessionV
     var password by remember { mutableStateOf("") }
     var error by remember { mutableStateOf<String?>(null) }
     val uiEvent by viewModel.uiEvent.collectAsState()
+    var shouldReset by remember { mutableStateOf(false) }
 
     LaunchedEffect(uiEvent) {
-        when (uiEvent) {
-            is LoginUiEvent.Success -> {
-                userSessionViewModel.login((uiEvent as LoginUiEvent.Success).email)
-                navController.navigate("home") {
-                    popUpTo("login") { inclusive = true }
+        try {
+            when (uiEvent) {
+                is LoginUiEvent.Success -> {
+                    userSessionViewModel.login((uiEvent as LoginUiEvent.Success).email)
+                    navController.navigate("home") {
+                        popUpTo("login") { inclusive = true }
+                    }
+                    shouldReset = true
                 }
-                viewModel.resetEvent()
+                is LoginUiEvent.Error -> {
+                    error = (uiEvent as LoginUiEvent.Error).message
+                    shouldReset = true
+                }
+                LoginUiEvent.Idle -> {}
             }
-            is LoginUiEvent.Error -> {
-                error = (uiEvent as LoginUiEvent.Error).message
-                viewModel.resetEvent()
-            }
-            LoginUiEvent.Idle -> {}
+        } catch (e: Exception) {
+            println("LoginScreen LaunchedEffect error: ${e.message}")
+        }
+    }
+    LaunchedEffect(shouldReset) {
+        if (shouldReset) {
+            viewModel.resetEvent()
+            shouldReset = false
         }
     }
 

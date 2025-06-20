@@ -31,4 +31,26 @@ interface NewbornDao {
 
     @Query("UPDATE newborn SET isFavorite = :isFavorite WHERE entity = :entity AND municipality = :municipality AND year = :year AND month = :month")
     suspend fun setFavoriteByFields(entity: String, municipality: String?, year: Int, month: Int, isFavorite: Boolean)
+
+    @Query("SELECT * FROM newborn WHERE id = :id LIMIT 1")
+    suspend fun getById(id: Int): NewbornEntity?
+
+    @Query("SELECT * FROM newborn WHERE id IN (:ids)")
+    suspend fun getByIds(ids: List<Int>): List<NewbornEntity>
+
+    @Transaction
+    suspend fun upsert(newborn: NewbornEntity) {
+        val existing = getByUniqueKey(newborn.entity, newborn.municipality, newborn.year, newborn.month)
+        if (existing != null) {
+            update(newborn.copy(id = existing.id))
+        } else {
+            insert(newborn)
+        }
+    }
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insert(newborn: NewbornEntity)
+
+    @Query("SELECT * FROM newborn WHERE entity = :entity AND municipality IS :municipality AND year = :year AND month = :month LIMIT 1")
+    suspend fun getByUniqueKey(entity: String, municipality: String?, year: Int, month: Int): NewbornEntity?
 } 

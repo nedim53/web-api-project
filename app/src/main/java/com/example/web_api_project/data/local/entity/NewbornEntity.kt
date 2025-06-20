@@ -2,6 +2,7 @@ package com.example.web_api_project.data.local.entity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import com.example.web_api_project.data.remote.newborn.NewbornEntry
 
 @Entity(tableName = "newborn")
 data class NewbornEntity(
@@ -17,4 +18,19 @@ data class NewbornEntity(
     val femaleTotal: Int,
     val total: Int,
     val isFavorite: Boolean = false
+)
+
+fun NewbornEntity.toDomain(): NewbornEntry = NewbornEntry(
+    id = id,
+    entity = entity,
+    canton = canton,
+    municipality = municipality,
+    institution = institution,
+    year = year,
+    month = month,
+    dateUpdate = dateUpdate,
+    maleTotal = maleTotal,
+    femaleTotal = femaleTotal,
+    total = total,
+    isFavorite = false
 ) 

@@ -11,11 +11,38 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.web_api_project.ui.screen.home.NewbornViewModel
 import androidx.navigation.NavController
+import com.example.web_api_project.ui.UserSessionViewModel
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.Star
+import androidx.compose.ui.graphics.Color
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FavoritesScreen(navController: NavController, viewModel: NewbornViewModel = viewModel()) {
-    val favorites by viewModel.favorites.collectAsState()
+fun FavoritesScreen(navController: NavController, userSessionViewModel: UserSessionViewModel, viewModel: NewbornViewModel = viewModel()) {
+    val email by userSessionViewModel.userEmail.collectAsState()
+    val emailValue = email
+    val favoriteIds by viewModel.favoriteIds.collectAsState()
+    val state by viewModel.state.collectAsState()
+    var favorites by remember { mutableStateOf<List<com.example.web_api_project.data.remote.newborn.NewbornEntry>>(emptyList()) }
+    val scope = rememberCoroutineScope()
+    LaunchedEffect(emailValue) {
+        println("LaunchedEffect (FavoritesScreen): email=$emailValue")
+        if (emailValue == null) {
+            userSessionViewModel.login("test@email.com")
+            println("LaunchedEffect: set test email")
+        } else {
+            viewModel.refreshUserAndFavorites(emailValue)
+        }
+    }
+    LaunchedEffect(favoriteIds) {
+        scope.launch {
+            favorites = viewModel.getFavoriteEntries()
+        }
+    }
+    val data = if (state is com.example.web_api_project.data.repository.NewbornResource.Success) (state as com.example.web_api_project.data.repository.NewbornResource.Success).data else emptyList()
+    val favoritesFromData = data.filter { favoriteIds.contains(it.id) }
 
     Scaffold(
         topBar = {
@@ -42,10 +69,22 @@ fun FavoritesScreen(navController: NavController, viewModel: NewbornViewModel = 
                                 )
                             }
                     ) {
-                        Column(Modifier.padding(12.dp)) {
-                            Text(text = "${entry.year}/${entry.month} - ${entry.municipality}", style = MaterialTheme.typography.titleMedium)
-                            Text(text = "Ukupno: ${entry.total} (M: ${entry.maleTotal}, Ž: ${entry.femaleTotal})")
-                            Text(text = "Ažurirano: ${entry.dateUpdate}")
+                        Row(
+                            Modifier.padding(12.dp),
+                            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                        ) {
+                            Column(Modifier.weight(1f)) {
+                                Text(text = "${entry.year}/${entry.month} - ${entry.municipality}", style = MaterialTheme.typography.titleMedium)
+                                Text(text = "Ukupno: ${entry.total} (M: ${entry.maleTotal}, Ž: ${entry.femaleTotal})")
+                                Text(text = "Ažurirano: ${entry.dateUpdate}")
+                            }
+                            IconButton(onClick = { viewModel.toggleFavorite(entry) }) {
+                                Icon(
+                                    imageVector = Icons.Filled.Star,
+                                    contentDescription = "Ukloni iz favorita",
+                                    tint = Color.Yellow
+                                )
+                            }
                         }
                     }
                 }

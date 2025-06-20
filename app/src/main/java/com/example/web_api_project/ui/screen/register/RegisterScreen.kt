@@ -23,20 +23,31 @@ fun RegisterScreen(navController: NavController, viewModel: RegisterViewModel = 
     var address by remember { mutableStateOf("") }
     var error by remember { mutableStateOf<String?>(null) }
     val uiEvent by viewModel.uiEvent.collectAsState()
+    var shouldReset by remember { mutableStateOf(false) }
 
     LaunchedEffect(uiEvent) {
-        when (uiEvent) {
-            is RegisterUiEvent.Success -> {
-                navController.navigate("login") {
-                    popUpTo("register") { inclusive = true }
+        try {
+            when (uiEvent) {
+                is RegisterUiEvent.Success -> {
+                    navController.navigate("login") {
+                        popUpTo("register") { inclusive = true }
+                    }
+                    shouldReset = true
                 }
-                viewModel.resetEvent()
+                is RegisterUiEvent.Error -> {
+                    error = (uiEvent as RegisterUiEvent.Error).message
+                    shouldReset = true
+                }
+                RegisterUiEvent.Idle -> {}
             }
-            is RegisterUiEvent.Error -> {
-                error = (uiEvent as RegisterUiEvent.Error).message
-                viewModel.resetEvent()
-            }
-            RegisterUiEvent.Idle -> {}
+        } catch (e: Exception) {
+            println("RegisterScreen LaunchedEffect error: ${e.message}")
+        }
+    }
+    LaunchedEffect(shouldReset) {
+        if (shouldReset) {
+            viewModel.resetEvent()
+            shouldReset = false
         }
     }
 
