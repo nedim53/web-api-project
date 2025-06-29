@@ -10,6 +10,11 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.web_api_project.ui.UserSessionViewModel
+import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.launch
+import com.example.web_api_project.utils.dataStore
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringPreferencesKey
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -19,13 +24,21 @@ fun LoginScreen(navController: NavController, userSessionViewModel: UserSessionV
     var error by remember { mutableStateOf<String?>(null) }
     val uiEvent by viewModel.uiEvent.collectAsState()
     var shouldReset by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(uiEvent) {
         try {
             when (uiEvent) {
                 is LoginUiEvent.Success -> {
                     userSessionViewModel.login((uiEvent as LoginUiEvent.Success).email)
-                    navController.navigate("home") {
+                    // Sačuvaj email u DataStore
+                    scope.launch {
+                        context.dataStore.edit { prefs ->
+                            prefs[stringPreferencesKey("last_email")] = (uiEvent as LoginUiEvent.Success).email
+                        }
+                    }
+                    navController.navigate("onboarding") {
                         popUpTo("login") { inclusive = true }
                     }
                     shouldReset = true

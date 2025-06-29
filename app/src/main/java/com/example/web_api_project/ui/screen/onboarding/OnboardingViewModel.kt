@@ -50,4 +50,12 @@ class OnboardingViewModel(application: Application) : AndroidViewModel(applicati
             _year.value = prefs[YEAR_KEY] ?: 2024
         }
     }
+
+    fun saveDatasetType(datasetType: String) {
+        viewModelScope.launch {
+            getApplication<Application>().dataStore.edit { prefs ->
+                prefs[stringPreferencesKey("dataset_type")] = datasetType
+            }
+        }
+    }
 } 

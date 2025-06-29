@@ -26,6 +26,7 @@ import androidx.compose.material.icons.outlined.Star
 import androidx.compose.ui.graphics.Color
 import com.example.web_api_project.ui.UserSessionViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.web_api_project.ui.screen.home.DeathsListScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,6 +44,7 @@ fun NewbornListScreen(
     val favoriteIds by viewModel.favoriteIds.collectAsState()
     val token = "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIyMDk1IiwibmJmIjoxNzUwMjY5OTE4LCJleHAiOjE3NTAzNTYzMTgsImlhdCI6MTc1MDI2OTkxOH0.P5Q6T786VSUZmanQDMKBN60wtjB6QT8dRyLGc-e_XROEaaMVrIdp8VweqIIZWIWlUkrB8chKxztxD7BIbi6A6w"
     var isRefreshing by remember { mutableStateOf(false) }
+    var datasetType by remember { mutableStateOf("Novorođeni") }
 
     val email by userSessionViewModel.userEmail.collectAsState()
     val emailValue = email
@@ -60,85 +62,146 @@ fun NewbornListScreen(
         entity = prefs[stringPreferencesKey("entity")] ?: "FBiH"
         municipality = prefs[stringPreferencesKey("municipality")] ?: ""
         year = prefs[intPreferencesKey("year")] ?: 2024
+        datasetType = prefs[stringPreferencesKey("dataset_type")] ?: "Novorođeni"
         viewModel.loadData(token, year, entity)
     }
 
-    Column(Modifier.fillMaxSize().padding(16.dp)) {
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            OutlinedTextField(
-                value = year.toString(),
-                onValueChange = { it.toIntOrNull()?.let { y -> year = y } },
-                label = { Text("Godina") },
-                singleLine = true,
-                modifier = Modifier.weight(1f)
-            )
-            OutlinedTextField(
-                value = entity,
-                onValueChange = { entity = it },
-                label = { Text("Entitet") },
-                singleLine = true,
-                modifier = Modifier.weight(1f)
-            )
-            Button(onClick = { viewModel.loadData(token, year, entity) }) {
-                Text("Prikaži")
-            }
-        }
-        Spacer(Modifier.height(16.dp))
-        SwipeRefresh(
-            state = rememberSwipeRefreshState(isRefreshing),
-            onRefresh = {
-                isRefreshing = true
-                viewModel.loadData(token, year, entity)
-            }
-        ) {
-            when (state) {
-                is NewbornResource.Loading -> {
-                    isRefreshing = false
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
-                    }
-                }
-                is NewbornResource.Success -> {
-                    isRefreshing = false
-                    val data = (state as NewbornResource.Success).data
-                    LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        items(data) { entry ->
-                            val isFav = favoriteIds.contains(entry.id)
-                            Card(
-                                Modifier
-                                    .fillMaxWidth()
-                                    .clickable {
-                                        navController.navigate("details/${entry.id}")
+    var searchText by remember { mutableStateOf("") }
+    var sortOption by remember { mutableStateOf("Godina") }
+    var sortMenuExpanded by remember { mutableStateOf(false) }
+
+    // Prikaz podataka zavisi od datasetType
+    if (datasetType == "Novorođeni") {
+        // Prikaz novorođenih
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text("Novorođeni", color = MaterialTheme.colorScheme.onPrimary) },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.primary
+                    )
+                )
+            },
+            containerColor = MaterialTheme.colorScheme.background
+        ) { padding ->
+            Column(Modifier.padding(padding)) {
+                // Kontrole za filtriranje i sortiranje
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    OutlinedTextField(
+                        value = searchText,
+                        onValueChange = { searchText = it },
+                        label = { Text("Pretraži opštinu") },
+                        modifier = Modifier.weight(1f)
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    ExposedDropdownMenuBox(
+                        expanded = sortMenuExpanded,
+                        onExpandedChange = { sortMenuExpanded = !sortMenuExpanded }
+                    ) {
+                        OutlinedTextField(
+                            value = sortOption,
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text("Sortiraj") },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = sortMenuExpanded) },
+                            modifier = Modifier.menuAnchor()
+                        )
+                        ExposedDropdownMenu(
+                            expanded = sortMenuExpanded,
+                            onDismissRequest = { sortMenuExpanded = false }
+                        ) {
+                            listOf("Godina", "Ukupno", "Opština").forEach { option ->
+                                DropdownMenuItem(
+                                    text = { Text(option) },
+                                    onClick = {
+                                        sortOption = option
+                                        sortMenuExpanded = false
                                     }
-                            ) {
-                                Row(
-                                    Modifier.padding(12.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Column(Modifier.weight(1f)) {
-                                        Text(text = "${entry.year}/${entry.month} - ${entry.municipality}", style = MaterialTheme.typography.titleMedium)
-                                        Text(text = "Ukupno: ${entry.total} (M: ${entry.maleTotal}, Ž: ${entry.femaleTotal})")
-                                        Text(text = "Ažurirano: ${entry.dateUpdate}")
-                                    }
-                                    IconButton(onClick = { viewModel.toggleFavorite(entry) }) {
-                                        Icon(
-                                            imageVector = if (isFav) Icons.Filled.Star else Icons.Outlined.Star,
-                                            contentDescription = if (isFav) "Ukloni iz favorita" else "Dodaj u favorite",
-                                            tint = if (isFav) Color.Yellow else Color.Gray
-                                        )
-                                    }
-                                }
+                                )
                             }
                         }
                     }
                 }
-                is NewbornResource.Error -> {
-                    isRefreshing = false
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text((state as NewbornResource.Error).message, color = MaterialTheme.colorScheme.error)
+
+                SwipeRefresh(
+                    state = rememberSwipeRefreshState(isRefreshing),
+                    onRefresh = {
+                        isRefreshing = true
+                        viewModel.loadData(token, year, entity)
+                    }
+                ) {
+                    when (state) {
+                        is NewbornResource.Loading -> {
+                            isRefreshing = false
+                            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                            }
+                        }
+                        is NewbornResource.Success -> {
+                            isRefreshing = false
+                            var data = (state as NewbornResource.Success).data
+                            // Lokalno filtriranje po opštini
+                            data = if (searchText.isNotBlank()) data.filter { it.municipality?.contains(searchText, ignoreCase = true) == true } else data
+                            // Sortiranje
+                            data = when (sortOption) {
+                                "Godina" -> data.sortedWith(compareByDescending<NewbornEntry> { it.year }.thenByDescending { it.month })
+                                "Ukupno" -> data.sortedByDescending { it.total }
+                                "Opština" -> data.sortedBy { it.municipality ?: "" }
+                                else -> data
+                            }
+                            LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                items(data) { entry ->
+                                    val isFav = favoriteIds.contains(entry.id)
+                                    Card(
+                                        Modifier
+                                            .fillMaxWidth()
+                                            .clickable {
+                                                navController.navigate("details/${entry.id}")
+                                            }
+                                    ) {
+                                        Row(
+                                            Modifier.padding(12.dp),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Column(Modifier.weight(1f)) {
+                                                Text(text = "${entry.year}/${entry.month} - ${entry.municipality}", style = MaterialTheme.typography.titleMedium)
+                                                Text(text = "Ukupno: ${entry.total} (M: ${entry.maleTotal}, Ž: ${entry.femaleTotal})")
+                                                Text(text = "Ažurirano: ${entry.dateUpdate}")
+                                            }
+                                            IconButton(onClick = { viewModel.toggleFavorite(entry) }) {
+                                                Icon(
+                                                    imageVector = if (isFav) Icons.Filled.Star else Icons.Outlined.Star,
+                                                    contentDescription = if (isFav) "Ukloni iz favorita" else "Dodaj u favorite",
+                                                    tint = if (isFav) Color.Yellow else Color.Gray
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        is NewbornResource.Error -> {
+                            isRefreshing = false
+                            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                Text((state as NewbornResource.Error).message, color = MaterialTheme.colorScheme.error)
+                            }
+                        }
                     }
                 }
             }
+        }
+    } else if (datasetType == "Izvještaji o smrtima") {
+        // Prikaz izvještaja o smrtima
+        DeathsListScreen(navController, userSessionViewModel)
+    } else {
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Text("Prikaz za $datasetType još nije implementiran.")
         }
     }
 } 

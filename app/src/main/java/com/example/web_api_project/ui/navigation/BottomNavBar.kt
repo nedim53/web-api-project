@@ -5,7 +5,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -27,14 +26,12 @@ sealed class BottomNavItem(val route: String, val label: String, val icon: Image
     object Home : BottomNavItem("home", "Početna", Icons.Filled.Home)
     object Favorites : BottomNavItem("favorites", "Favoriti", Icons.Filled.Favorite)
     object Profile : BottomNavItem("profile", "Profil", Icons.Filled.Person)
-    object Settings : BottomNavItem("settings", "Podešavanja", Icons.Filled.Settings)
 }
 
 val bottomNavItems = listOf(
     BottomNavItem.Home,
     BottomNavItem.Favorites,
-    BottomNavItem.Profile,
-    BottomNavItem.Settings
+    BottomNavItem.Profile
 )
 
 @Composable

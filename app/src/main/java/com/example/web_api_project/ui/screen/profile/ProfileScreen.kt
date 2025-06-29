@@ -8,6 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Settings
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.web_api_project.ui.UserSessionViewModel
 import androidx.navigation.NavController
@@ -71,6 +72,28 @@ fun ProfileScreen(navController: NavController, userSessionViewModel: UserSessio
                 }
             }
             Spacer(modifier = Modifier.weight(1f))
+            
+            // Dugme za promjenu preferencija
+            OutlinedButton(
+                onClick = {
+                    navController.navigate("onboarding") {
+                        launchSingleTop = true
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = MaterialTheme.colorScheme.primary
+                )
+            ) {
+                Icon(Icons.Default.Settings, contentDescription = null)
+                Spacer(Modifier.width(8.dp))
+                Text("Promijeni preferencije")
+            }
+            
+            Spacer(Modifier.height(16.dp))
+            
             Button(
                 onClick = {
                     userSessionViewModel.logout()
@@ -80,10 +103,12 @@ fun ProfileScreen(navController: NavController, userSessionViewModel: UserSessio
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(24.dp)
+                    .padding(horizontal = 24.dp)
             ) {
                 Text("Odjavi se")
             }
+            
+            Spacer(Modifier.height(24.dp))
         }
     }
 } 

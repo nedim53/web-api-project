@@ -1,14 +1,14 @@
-package com.example.web_api_project.data.remote.newborn
+package com.example.web_api_project.data.remote.deaths
 
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
-object NewbornRetrofitClient {
+object DeathsRetrofitClient {
     private const val BASE_URL = "https://odp.iddeea.gov.ba:8096/"
     private const val TOKEN = "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIyMDk1IiwibmJmIjoxNzUxMTk4OTYwLCJleHAiOjE3NTEyODUzNjAsImlhdCI6MTc1MTE5ODk2MH0.sbXr05EksmvyRgW1p-rGDgmHrURJMz8CDBKwQb8bvd5RvY96XSnyY2QRJa68N87vUQGWn_fJzzjUH7NtcQRKxA"
 
-    fun getClient(token: String = TOKEN): NewbornApiService {
+    fun getClient(token: String = TOKEN): DeathsApiService {
         val client = OkHttpClient.Builder()
             .addInterceptor { chain ->
                 val newRequest = chain.request().newBuilder()
@@ -23,6 +23,6 @@ object NewbornRetrofitClient {
             .client(client)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
-            .create(NewbornApiService::class.java)
+            .create(DeathsApiService::class.java)
     }
 } 

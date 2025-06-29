@@ -7,5 +7,7 @@ import androidx.room.PrimaryKey
 data class FavoriteEntity(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val userId: Int, // id iz UserEntity
-    val newbornId: Int // id iz NewbornEntity
+    val newbornId: Int? = null, // id iz NewbornEntity
+    val deathsId: Int? = null, // id iz DeathsEntity
+    val dataType: String // "newborn" ili "deaths"
 ) 

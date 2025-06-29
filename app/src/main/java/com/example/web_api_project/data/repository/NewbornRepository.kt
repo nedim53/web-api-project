@@ -19,12 +19,12 @@ class NewbornRepository(
     private val api: NewbornApiService,
     private val dao: NewbornDao
 ) {
-    fun getNewborns(token: String, year: Int, entity: String): Flow<NewbornResource> = flow {
+    fun getNewborns(token: String, year: Int, entity: String, municipality: String? = null): Flow<NewbornResource> = flow {
         emit(NewbornResource.Loading)
         try {
             val local = dao.getAll().map { it.toDomain() }
             if (local.isNotEmpty()) emit(NewbornResource.Success(local))
-            val response = api.getNewbornData(NewbornRequest(year = year.toString(), month = null, entity = entity))
+            val response = api.getNewbornData(NewbornRequest(year = year.toString(), month = null, entity = entity, municipality = municipality.takeIf { !it.isNullOrBlank() }))
             if (response.isSuccessful) {
                 val data = response.body()?.result ?: emptyList()
                 data.forEach { entry ->

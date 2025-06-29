@@ -4,9 +4,9 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.web_api_project.data.local.DatabaseService
-import com.example.web_api_project.data.remote.newborn.NewbornRetrofitClient
-import com.example.web_api_project.data.repository.NewbornRepository
-import com.example.web_api_project.data.repository.NewbornResource
+import com.example.web_api_project.data.remote.deaths.DeathsRetrofitClient
+import com.example.web_api_project.data.repository.DeathsRepository
+import com.example.web_api_project.data.repository.DeathsResource
 import com.example.web_api_project.data.repository.FavoriteRepository
 import com.example.web_api_project.data.local.dao.UserDao
 import com.example.web_api_project.data.local.dao.FavoriteDao
@@ -19,27 +19,27 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import com.example.web_api_project.data.remote.newborn.NewbornEntry
-import com.example.web_api_project.data.local.entity.NewbornEntity
+import com.example.web_api_project.data.remote.deaths.DeathsEntry
+import com.example.web_api_project.data.local.entity.DeathsEntity
 
-class NewbornViewModel(application: Application) : AndroidViewModel(application) {
+class DeathsViewModel(application: Application) : AndroidViewModel(application) {
     val db = DatabaseService.getDatabase(application)
-    private val repository = NewbornRepository(
-        api = NewbornRetrofitClient.getClient(),
-        dao = db.newbornDao()
+    private val repository = DeathsRepository(
+        api = DeathsRetrofitClient.getClient(),
+        dao = db.deathsDao()
     )
     private val favoriteRepository = FavoriteRepository(db.favoriteDao())
     private val userDao = db.userDao()
 
-    private val _state = MutableStateFlow<NewbornResource>(NewbornResource.Loading)
-    val state: StateFlow<NewbornResource> = _state.asStateFlow()
+    private val _state = MutableStateFlow<DeathsResource>(DeathsResource.Loading)
+    val state: StateFlow<DeathsResource> = _state.asStateFlow()
 
-    private val _favorites = MutableStateFlow<List<com.example.web_api_project.data.remote.newborn.NewbornEntry>>(emptyList())
-    val favorites: StateFlow<List<com.example.web_api_project.data.remote.newborn.NewbornEntry>> = _favorites.asStateFlow()
+    private val _favorites = MutableStateFlow<List<DeathsEntry>>(emptyList())
+    val favorites: StateFlow<List<DeathsEntry>> = _favorites.asStateFlow()
 
     private var currentUserId: Int? = null
 
-    private val newbornKeyToId = mutableMapOf<String, Int>()
+    private val deathsKeyToId = mutableMapOf<String, Int>()
 
     private val _favoriteIds = MutableStateFlow<List<Int>>(emptyList())
     val favoriteIds: StateFlow<List<Int>> = _favoriteIds.asStateFlow()
@@ -56,34 +56,34 @@ class NewbornViewModel(application: Application) : AndroidViewModel(application)
     private suspend fun loadFavoritesForUser(userId: Int) {
         val favoriteEntities = favoriteRepository.getFavoritesForUser(userId)
         _favoriteIds.value = favoriteEntities
-            .filter { it.dataType == "newborn" && it.newbornId != null }
-            .map { it.newbornId!! }
+            .filter { it.dataType == "deaths" && it.deathsId != null }
+            .map { it.deathsId!! }
     }
 
     fun loadData(token: String, year: Int, entity: String, municipality: String? = null) {
         viewModelScope.launch {
-            repository.getNewborns(token, year, entity, municipality).collect {
+            repository.getDeaths(token, year, entity, municipality).collect {
                 _state.value = it
-                val newborns = db.newbornDao().getAll()
-                newbornKeyToId.clear()
-                newborns.forEach { newbornKeyToId[newbornEntityUniqueKey(it)] = it.id }
-                _state.value = com.example.web_api_project.data.repository.NewbornResource.Success(newborns.map { it.toDomain() })
+                val deaths = db.deathsDao().getAll()
+                deathsKeyToId.clear()
+                deaths.forEach { deathsKeyToId[deathsEntityUniqueKey(it)] = it.id }
+                _state.value = DeathsResource.Success(deaths.map { it.toDomain() })
                 currentUserId?.let { loadFavoritesForUser(it) }
             }
         }
     }
 
-    fun toggleFavorite(entry: NewbornEntry) {
+    fun toggleFavorite(entry: DeathsEntry) {
         viewModelScope.launch {
             try {
                 val userId = currentUserId ?: return@launch
                 val roomId = entry.id
                 if (roomId == 0) return@launch
-                val isFav = favoriteRepository.isNewbornFavorite(userId, roomId)
+                val isFav = favoriteRepository.isDeathsFavorite(userId, roomId)
                 if (isFav) {
-                    favoriteRepository.removeNewbornFavorite(userId, roomId)
+                    favoriteRepository.removeDeathsFavorite(userId, roomId)
                 } else {
-                    favoriteRepository.addNewbornFavorite(userId, roomId)
+                    favoriteRepository.addDeathsFavorite(userId, roomId)
                 }
                 loadFavoritesForUser(userId)
             } catch (e: Exception) {
@@ -100,13 +100,13 @@ class NewbornViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
-    private fun newbornEntityUniqueKey(entity: NewbornEntity) = "${'$'}{entity.entity}_${'$'}{entity.municipality}_${'$'}{entity.year}_${'$'}{entity.month}"
-    private fun newbornEntryUniqueKey(entry: NewbornEntry) = "${'$'}{entry.entity}_${'$'}{entry.municipality}_${'$'}{entry.year}_${'$'}{entry.month}"
+    private fun deathsEntityUniqueKey(entity: DeathsEntity) = "${entity.entity}_${entity.municipality}_${entity.year}_${entity.month}"
+    private fun deathsEntryUniqueKey(entry: DeathsEntry) = "${entry.entity}_${entry.municipality}_${entry.year}_${entry.month}"
 
-    suspend fun getFavoriteEntries(): List<NewbornEntry> {
+    suspend fun getFavoriteEntries(): List<DeathsEntry> {
         val ids = favoriteIds.value
         if (ids.isEmpty()) return emptyList()
-        val entities = db.newbornDao().getByIds(ids)
+        val entities = db.deathsDao().getByIds(ids)
         return entities.map { it.toDomain() }
     }
 } 
