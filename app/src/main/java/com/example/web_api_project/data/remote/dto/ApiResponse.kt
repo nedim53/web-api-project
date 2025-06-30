@@ -14,15 +14,7 @@ data class ResultDto(
 
 data class DatasetDto(
     @field:Json(name = "_id") val id: String,
-    @field:Json(name = "naziv") val naziv: String?,      // Prilagodi ime polja
-    @field:Json(name = "vrijednost") val vrijednost: String?, // Prilagodi ime polja  
-    @field:Json(name = "kategorija") val kategorija: String?  // Prilagodi ime polja
+    @field:Json(name = "naziv") val naziv: String?,
+    @field:Json(name = "vrijednost") val vrijednost: String?,
+    @field:Json(name = "kategorija") val kategorija: String?
 )
-
-// PRIMJER kako da prilagodiš za različite datasetove:
-// data class DatasetDto(
-//     @field:Json(name = "_id") val id: String,
-//     @field:Json(name = "naziv_firme") val naziv: String?,
-//     @field:Json(name = "adresa") val vrijednost: String?,
-//     @field:Json(name = "grad") val kategorija: String?
-// ) 
