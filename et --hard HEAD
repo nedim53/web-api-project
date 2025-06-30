@@ -1,0 +1,60 @@
+[33mcommit 6b96bae982bcb7db0dd4a521158fbaffad2a6057[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m, [m[1;31morigin/master[m[33m, [m[1;31morigin/HEAD[m[33m)[m
+Author: nedim53 <zec.nedim13@gmail.com>
+Date:   Mon Jun 30 14:45:14 2025 +0200
+
+    Little adjustments
+
+[33mcommit b935ddca0eec89744b4938f46a484528d955ff38[m
+Author: nedim53 <zec.nedim13@gmail.com>
+Date:   Sun Jun 29 21:06:50 2025 +0200
+
+    Improvments made onboarding
+
+[33mcommit d60d91909e7eabb573236e1971bd05a223a0ef98[m
+Author: nedim53 <zec.nedim13@gmail.com>
+Date:   Fri Jun 20 17:19:10 2025 +0200
+
+    zavrsen fav
+
+[33mcommit 24dfbd4e80a13a491a99009fe3cc54fb876f0431[m
+Author: nedim53 <zec.nedim13@gmail.com>
+Date:   Thu Jun 19 19:39:33 2025 +0200
+
+    Vecina posla gotovo
+
+[33mcommit 3ded147d8915a9cf969bfff8c85e0aeb91a02384[m
+Merge: 5805e39 21b2e92
+Author: nedim53 <zec.nedim13@gmail.com>
+Date:   Wed Jun 18 20:36:24 2025 +0200
+
+    Project base
+
+[33mcommit 21b2e92fd581351856c26d6e924d030e56d69b5b[m
+Author: nedim53 <zec.nedim13@gmail.com>
+Date:   Wed Jun 18 20:35:20 2025 +0200
+
+    nist
+
+[33mcommit 5805e39bd35feb41cdffaeebd5a5a89bf65a92c6[m
+Author: nedim53 <zec.nedim13@gmail.com>
+Date:   Wed Jun 18 20:29:50 2025 +0200
+
+    nista
+
+[33mcommit 10b7073139b8a581c4aa1ccd8bc7eacb394204ca[m
+Author: nedim53 <zec.nedim13@gmail.com>
+Date:   Wed Jun 18 20:28:34 2025 +0200
+
+    Male sitnice
+
+[33mcommit 8aa76893d707a5ecae2eaaf91c8914b1833aa5da[m
+Author: nedim53 <zec.nedim13@gmail.com>
+Date:   Wed Jun 18 20:16:04 2025 +0200
+
+    Implement secure API token loading and Retrofit auth, update gradle config, and improve API integration
+
+[33mcommit 455f1df2aae47ff64110dd612284c4c92fdc6ba6[m
+Author: nedim53 <zec.nedim13@gmail.com>
+Date:   Mon Jun 16 10:54:59 2025 +0200
+
+    Project base

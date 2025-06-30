@@ -17,7 +17,7 @@ object DatabaseService {
                 AppDatabase::class.java,
                 "app_database"
             )
-            .addMigrations(MIGRATION_6_7)
+            .fallbackToDestructiveMigration()
             .build()
             INSTANCE = instance
             instance
