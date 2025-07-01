@@ -65,7 +65,7 @@ Aplikacija **WebApiApplication** je moderna Android aplikacija razvijena u Kotli
 
 Aplikacija koristi MVVM (Model-View-ViewModel) arhitekturu, što omogućava jasnu separaciju odgovornosti, olakšava testiranje i održavanje, te omogućava reaktivno ažuriranje korisničkog interfejsa. U nastavku je prikazan poboljšani dijagram glavnih komponenti i njihovih interakcija:
 
-![MVVM Arhitektura aplikacije](docs/screenshots/mvvm_architecture.png)
+![MVVM Arhitektura aplikacije](docs/screenshots/mvvm_architecture-1.png)
 
 *Slika: Dijagram prikazuje tok podataka i interakcije između korisnika, UI sloja (Jetpack Compose, Navigation), ViewModel-a, repozitorija, udaljenih i lokalnih izvora podataka (Retrofit, Room, DataStore), kao i specijalizovanih komponenti za favorite i sesiju.*
 
