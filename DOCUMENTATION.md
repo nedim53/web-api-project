@@ -428,6 +428,71 @@ val shareIntent = Intent.createChooser(sendIntent, null)
 context.startActivity(shareIntent)
 ```
 
+### **Primjer: ViewModel sa StateFlow**
+```kotlin
+class DeathsViewModel(private val repository: DeathsRepository) : ViewModel() {
+    private val _uiState = MutableStateFlow<Resource<List<DeathsEntry>>>(Resource.Loading())
+    val uiState: StateFlow<Resource<List<DeathsEntry>>> = _uiState
+
+    fun fetchDeaths(year: Int, municipality: String) {
+        viewModelScope.launch {
+            _uiState.value = Resource.Loading()
+            _uiState.value = repository.getDeaths(year, municipality)
+        }
+    }
+}
+```
+
+### **Primjer: Room DAO upit**
+```kotlin
+@Dao
+interface DeathsDao {
+    @Query("SELECT * FROM deaths WHERE year = :year AND municipality = :municipality")
+    suspend fun getDeathsByYearAndMunicipality(year: Int, municipality: String): List<DeathsEntity>
+}
+```
+
+### **Primjer: Retrofit API servis**
+```kotlin
+interface DeathsApiService {
+    @GET("api/DeathsByRequestDate/List")
+    suspend fun getDeaths(
+        @Query("year") year: Int,
+        @Query("municipality") municipality: String
+    ): ApiResponse<List<DeathsEntry>>
+}
+```
+
+### **Primjer: DataStore upotreba**
+```kotlin
+object DataStoreUtils {
+    suspend fun saveSelectedYear(context: Context, year: Int) {
+        context.dataStore.edit { prefs ->
+            prefs[PreferencesKeys.SELECTED_YEAR] = year
+        }
+    }
+    val selectedYear: Flow<Int> = context.dataStore.data
+        .map { it[PreferencesKeys.SELECTED_YEAR] ?: 2023 }
+}
+```
+
+### **Primjer: Custom Compose komponenta**
+```kotlin
+@Composable
+fun DatasetCard(item: Dataset) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(4.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(text = item.title, style = MaterialTheme.typography.titleMedium)
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(text = item.description, style = MaterialTheme.typography.bodyMedium)
+        }
+    }
+}
+```
+
 ---
 
 ## 13. Kontakt i podrška
