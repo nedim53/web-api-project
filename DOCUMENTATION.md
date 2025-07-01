@@ -61,6 +61,31 @@ Aplikacija **WebApiApplication** je moderna Android aplikacija razvijena u Kotli
 - **MainActivity.kt** – Glavna aktivnost
 - **WebApiApplication.kt** – Klasa aplikacije
 
+## 3a. Opis arhitekture aplikacije (MVVM) sa dijagramom komponenti
+
+Aplikacija koristi MVVM (Model-View-ViewModel) arhitekturu, što omogućava jasnu separaciju odgovornosti, olakšava testiranje i održavanje, te omogućava reaktivno ažuriranje korisničkog interfejsa. U nastavku je prikazan poboljšani dijagram glavnih komponenti i njihovih interakcija:
+
+![MVVM Arhitektura aplikacije](docs/screenshots/mvvm_architecture.png)
+
+*Slika: Dijagram prikazuje tok podataka i interakcije između korisnika, UI sloja (Jetpack Compose, Navigation), ViewModel-a, repozitorija, udaljenih i lokalnih izvora podataka (Retrofit, Room, DataStore), kao i specijalizovanih komponenti za favorite i sesiju.*
+
+### Objašnjenje komponenti i interakcija
+
+- **View (Jetpack Compose UI):** Prikazuje podatke korisniku i šalje korisničke akcije (klikovi, unos, navigacija) ka ViewModel-u. UI se automatski ažurira na osnovu promjena stanja iz ViewModel-a.
+- **ViewModel:** Sadrži poslovnu logiku, upravlja stanjem ekrana (StateFlow/LiveData), komunicira sa repozitorijima i izlaže podatke UI sloju. Takođe, upravlja validacijom, filtriranjem i transformacijom podataka.
+- **Repository:** Centralna tačka za pristup podacima. Kombinuje podatke iz udaljenih izvora (API) i lokalnih izvora (Room, DataStore). Implementira logiku keširanja i odlučuje kada koristiti koji izvor.
+- **Remote Data Source (Retrofit API Service):** Zadužen za komunikaciju sa ODP BiH API-jem, dohvat i slanje podataka putem HTTP zahtjeva.
+- **Local Data Source (Room Database, DataStore):** Omogućava lokalno čuvanje podataka (entiteti, favoriti, korisničke preferencije, sesija) radi offline pristupa i bržeg učitavanja.
+- **DataStore:** Koristi se za čuvanje korisničkih preferencija i sesije (npr. odabrana godina, entitet, email, status prijave).
+- **FavoriteDao:** Poseban DAO sloj za upravljanje omiljenim zapisima korisnika.
+- **Navigation (AppNavGraph):** Upravljanje navigacijom između ekrana, omogućava deklarativno definisanje ruta i parametara.
+
+Ovakva arhitektura omogućava:
+- Jednostavno testiranje poslovne logike (ViewModel, Repository)
+- Lako proširenje aplikacije (dodavanje novih datasetova, ekrana, izvora podataka)
+- Reaktivno i efikasno ažuriranje UI-a
+- Jasnu separaciju odgovornosti i bolju čitljivost koda
+
 ---
 
 ## 4. API-ji i datasetovi
