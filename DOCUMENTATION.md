@@ -1,202 +1,384 @@
-# Dokumentacija Android aplikacije
-
-## Sadržaj
-
-1. **Uvod**
-2. **Opis rada aplikacije**  
-   - Opis funkcionalnosti  
-   - Screenshots (mjesto za slike)
-3. **Arhitektura aplikacije (MVVM)**
-   - Dijagram komponenti i interakcija
-   - Objašnjenje MVVM pristupa
-4. **Opis ključnih klasa**
-   - ViewModel-i
-   - Repository klase
-   - DAO objekti
-   - Ključne Composable funkcije
-5. **Korištene Android i Jetpack biblioteke**
-   - Room
-   - ViewModel
-   - Compose: životni ciklus, State, remember
-   - Coroutines i Flow
-   - Retrofit
-   - Navigacija u Compose
-   - Material 3 Theming
-6. **Zaključak**
+# Dokumentacija aplikacije "WebApiApplication"
 
 ---
 
 ## 1. Uvod
 
-Ova dokumentacija opisuje Android aplikaciju razvijenu korištenjem modernih Jetpack komponenti i MVVM arhitekture. Aplikacija omogućava pregled, pretragu i označavanje podataka o novorođenčadi i smrtnosti, dodavanje favorites stavki, dijeljenje stavki, prikaz graficki kroz grafikone uz mogućnost autentifikacije korisnika.
+Aplikacija **WebApiApplication** je moderna Android aplikacija razvijena u Kotlin programskom jeziku koristeći Jetpack Compose za korisnički interfejs. Glavna svrha aplikacije je prikaz i analiza javno dostupnih podataka sa **Portala Otvorenih Podataka Bosne i Hercegovine (ODP BiH)**, s posebnim fokusom na podatke o novorođenima i umrlima. Aplikacija omogućava korisnicima da pregledaju, filtriraju, sortiraju, dijele i sačuvaju omiljene podatke, uz lokalnu autentifikaciju i keširanje podataka radi offline pristupa.
 
 ---
 
-## 2. Opis rada aplikacije
+## 2. Funkcionalnosti aplikacije
 
-Aplikacija omogućava:
-- Prikaz liste novorođenčadi i smrtnosti po godinama, kantonima i institucijama
-- Detaljan prikaz svakog zapisa
-- Označavanje zapisa kao omiljenih (favorites)
-- Prikaz omiljenih zapisa
-- Registraciju i prijavu korisnika
-- Prikaz korisničkog profila
-- Onboarding ekran za nove korisnike
+### 2.1. Prikaz javnih datasetova
+- **Novorođeni** – statistika o broju rođenih po godinama, entitetima, opštinama i drugim parametrima.
+- **Umrli** – statistika o broju umrlih, sa detaljima po spolu, godini, mjesecu, entitetu, opštini i ustanovi.
+- **Ostali datasetovi** – generički podaci iz ODP BiH, prikazani na početnom ekranu.
 
-**Screenshots:**
+### 2.2. Filtriranje i sortiranje
+- Korisnici mogu filtrirati podatke po opštini, godini, entitetu i vrsti dataset-a.
+- Sortiranje je omogućeno po godini, ukupnom broju i opštini, što olakšava analizu i pronalazak relevantnih informacija.
 
-![Onboarding ekran](docs/screenshots/onboarding.png)
-_Onboarding ekran za nove korisnike_
+### 2.3. Favoriti
+- Svaki korisnik može označiti određene zapise kao favorite. Favoriti su dostupni na posebnom ekranu, a podaci o favoritima se čuvaju lokalno za svakog korisnika.
 
-![Login ekran](docs/screenshots/login.png)
-_Ekran za prijavu korisnika_
+### 2.4. Dijeljenje podataka
+- Aplikacija omogućava dijeljenje detalja o pojedinačnim zapisima (npr. umrli) putem standardnog Android dijeljenja (`Intent.ACTION_SEND`). Korisnik može lako podijeliti podatke putem emaila, poruka ili društvenih mreža.
 
-![Register ekran](docs/screenshots/register.png)
-_Ekran za registraciju korisnika_
+### 2.5. Autentifikacija korisnika
+- Aplikacija podržava lokalnu registraciju i prijavu korisnika. Svaki korisnik ima svoj profil, a podaci o favoritima i preferencijama su vezani za korisnički nalog.
 
-![Početna stranica](docs/screenshots/homepage.png)
-_Početna stranica sa prikazom podataka_
+### 2.6. Keširanje i offline pristup
+- Podaci se keširaju u lokalnoj Room bazi, što omogućava pregled posljednje preuzete verzije podataka i kada korisnik nema pristup internetu.
 
-![Detalji zapisa](docs/screenshots/details.png)
-_Detaljan prikaz pojedinačnog zapisa_
+### 2.7. Onboarding i podešavanje preferencija
+- Prilikom prvog pokretanja, korisnik prolazi kroz onboarding ekran gdje bira vrstu podataka koje želi pratiti, entitet, opštinu i godinu. Ove preferencije se mogu kasnije mijenjati u profilu.
 
-![Favorites ekran](docs/screenshots/favorites.png)
-_Prikaz omiljenih zapisa_
-
-![Profil korisnika](docs/screenshots/profile.png)
-_Profil korisnika_
+### 2.8. Grafički prikaz podataka
+- U detaljima umrlih prikazan je grafikon (bar chart) koji vizualizira broj umrlih po spolu i ukupno, što korisniku daje brzi vizualni uvid u podatke.
 
 ---
 
-## 3. Arhitektura aplikacije (MVVM)
+## 3. Tehnička arhitektura
 
-Aplikacija koristi MVVM (Model-View-ViewModel) arhitekturu:
+### 3.1. Korištene tehnologije
+- **Jezik:** Kotlin
+- **UI:** Jetpack Compose
+- **Arhitektura:** MVVM (Model-View-ViewModel)
+- **Baza:** Room (za lokalno keširanje podataka)
+- **API komunikacija:** Retrofit + Moshi/Gson
+- **Preference storage:** DataStore
+- **Navigacija:** Navigation Compose
+- **Dijeljenje:** Android Intents
+- **Verzijsko upravljanje zavisnostima:** `libs.versions.toml`
+- **Dependency injection:** Ručno, bez Hilt-a
 
-```mermaid
-flowchart TD
-    View["View (Composable funkcije)"]
-    ViewModel["ViewModel"]
-    Repository["Repository"]
-    LocalData["Room (DAO, Entity)"]
-    RemoteData["Remote (Retrofit API)"]
-
-    View -- "UI events, State" --> ViewModel
-    ViewModel -- "LiveData/StateFlow" --> View
-    ViewModel -- "pozivi" --> Repository
-    Repository -- "Room DAO" --> LocalData
-    Repository -- "Retrofit API" --> RemoteData
-```
-
-- **View**: Jetpack Compose Composable funkcije
-- **ViewModel**: Upravljanje stanjem i logikom
-- **Repository**: Apstrakcija izvora podataka (lokalno i udaljeno)
-- **LocalData**: Room baze, DAO i Entity klase
-- **RemoteData**: Retrofit API servisi
+### 3.2. Struktura projekta
+- **data/** – Slojevi za pristup podacima (remote, local, repository)
+- **domain/** – Modeli podataka
+- **ui/** – Svi ekrani, navigacija, custom komponente, teme
+- **utils/** – Pomoćne klase (npr. Resource, DataStoreUtils)
+- **MainActivity.kt** – Glavna aktivnost
+- **WebApiApplication.kt** – Klasa aplikacije
 
 ---
 
-## 4. Opis ključnih klasa
+## 4. API-ji i datasetovi
 
-### ViewModel-i
+### 4.1. API-ji
+- **Novorođeni:** `NewbornApiService` (endpoint: `/api/NewbornByRequestDate/List`)
+- **Umrli:** `DeathsApiService` (endpoint: `/api/DeathsByRequestDate/List`)
+- **Dataset API:** `DatasetApi` (endpoint: `/api/3/action/datastore_search`)
 
-- `HomeViewModel`, `NewbornViewModel`, `DeathsViewModel`, `LoginViewModel`, `RegisterViewModel`, `ProfileViewModel`, `OnboardingViewModel`
-- Upravljaju stanjem ekrana, koristeći `StateFlow` ili `LiveData`
-- Komuniciraju s repozitorijima i izlažu podatke za UI
+Svi API-ji koriste baznu adresu `https://odp.iddeea.gov.ba/` ili port `8096` za specifične servise.
 
-**Primjer potpisa:**
+### 4.2. Datasetovi
+- **Novorođeni**: Prikaz broja rođenih po mjesecu, godini, entitetu, opštini, spolu.
+- **Umrli**: Prikaz broja umrlih po mjesecu, godini, entitetu, opštini, spolu, ustanovi.
+- **Generički datasetovi**: Prikaz podataka iz drugih javnih izvora sa ODP BiH, npr. statistika, demografija.
+
+---
+
+## 5. Opis ekrana i korisničkog interfejsa (uz reference na screenshotove)
+
+### 5.1. Splash Screen
+- **Opis:** Prikazuje logo aplikacije i inicijalno učitava podatke.
+- **Screenshot:** `docs/screenshots/splash.png`
+- **Detalji:** Kratka animacija ili statički prikaz prije preusmjeravanja na login ili onboarding.
+
+### 5.2. Onboarding Screen
+- **Opis:** Prvi ekran nakon instalacije ili prijave, gdje korisnik bira:
+  - Kategoriju podataka (Novorođeni, Izvještaji o smrtima)
+  - Entitet (FBiH, RS, Brčko)
+  - Opštinu (iz padajuće liste ili unosom)
+  - Godinu (ručni unos)
+- **Screenshot:** `docs/screenshots/onboarding.png`
+- **Detalji:** Svi izbori su sačuvani u DataStore i mogu se kasnije mijenjati. UI koristi `ExposedDropdownMenuBox` za padajuće liste.
+
+### 5.3. Login Screen
+- **Opis:** Ekran za prijavu korisnika sa emailom i lozinkom.
+- **Screenshot:** `docs/screenshots/login.png`
+- **Detalji:** Prikazuje validacijske poruke za pogrešan unos. Dugme za prebacivanje na registraciju.
+
+### 5.4. Register Screen
+- **Opis:** Ekran za registraciju novog korisnika.
+- **Screenshot:** `docs/screenshots/register.png`
+- **Detalji:** Polja za ime, prezime, email, lozinku, potvrdu lozinke, telefon i adresu. Validacija svih polja i prikaz grešaka.
+
+### 5.5. Home Screen
+- **Opis:** Glavni ekran sa listom podataka iz odabranog dataset-a.
+- **Screenshot:** `docs/screenshots/homepage.png`
+- **Detalji:** 
+  - Prikaz podataka u listi (`LazyColumn`).
+  - Svaki podatak prikazan kroz custom komponentu `DatasetCard`.
+  - Top bar sa nazivom "ODP BiH - Podaci".
+  - Navigacija putem donje trake (`BottomNavBar`).
+
+### 5.6. Deaths List Screen
+- **Opis:** Prikaz liste umrlih sa mogućnošću filtriranja i sortiranja.
+- **Detalji:** 
+  - Filtriranje po opštini (pretraga), entitetu, godini.
+  - Sortiranje po godini, ukupnom broju, opštini.
+  - Svaki zapis ima dugme za dodavanje u favorite.
+  - Swipe-to-refresh podrška.
+- **Screenshot:** (nije eksplicitno naveden, ali može biti dio `homepage.png`)
+
+### 5.7. Details Screen (DeathsDetailsScreen)
+- **Opis:** Prikaz detalja za pojedinačni zapis o umrlima.
+- **Screenshot:** `docs/screenshots/details.png`
+- **Detalji:**
+  - Prikaz svih atributa (entitet, kanton, opština, ustanova, godina, mjesec, ukupno, ažurirano).
+  - **Grafički prikaz:** Bar chart sa brojem umrlih po spolu i ukupno.
+  - Dugme za dijeljenje podataka (share).
+  - Dugme za dodavanje/uklanjanje iz favorita.
+
+### 5.8. Favorites Screen
+- **Opis:** Prikaz svih omiljenih zapisa korisnika.
+- **Screenshot:** `docs/screenshots/favorites.png`
+- **Detalji:** 
+  - Prikazani su favoriti iz oba dataset-a (novorođeni i umrli).
+  - Klikom na zapis otvara se detaljan prikaz.
+  - Ako nema favorita, prikazuje se poruka "Nema sačuvanih podataka".
+
+### 5.9. Profile Screen
+- **Opis:** Prikaz korisničkog profila.
+- **Screenshot:** `docs/screenshots/profile.png`
+- **Detalji:** 
+  - Prikaz imena, prezimena, emaila, telefona i adrese.
+  - Dugme za promjenu preferencija (vraća na onboarding).
+  - Dugme za odjavu.
+
+---
+
+## 6. Tehnički detalji i implementacija
+
+### 6.1. MVVM arhitektura
+- **ViewModel-i**: Svaki ekran ima svoj ViewModel (npr. `HomeViewModel`, `DeathsViewModel`, `NewbornViewModel`, `LoginViewModel`, `RegisterViewModel`).
+- **Repository pattern**: Svi podaci se dohvaćaju preko repozitorija koji kombinuju lokalne i remote izvore.
+- **Room baza**: Svi podaci se keširaju lokalno, omogućavajući offline rad.
+
+### 6.2. API komunikacija
+- **Retrofit** se koristi za komunikaciju sa ODP BiH API-jem.
+- **Moshi** i **Gson** za parsiranje JSON odgovora.
+- **OkHttp** za HTTP klijent i dodavanje autorizacijskih headera.
+
+### 6.3. DataStore
+- **DataStore** se koristi za čuvanje korisničkih preferencija (entitet, opština, godina, tip dataset-a, email).
+
+### 6.4. Navigacija
+- **Navigation Compose** omogućava deklarativnu navigaciju između ekrana.
+- **BottomNavBar** omogućava brzi pristup glavnim sekcijama: Početna, Favoriti, Profil.
+
+### 6.5. Custom UI komponente
+- **DatasetCard**: Prikazuje osnovne informacije o datasetu.
+- **BarChart**: Prikazuje grafikon broja umrlih (custom Compose komponenta).
+- **BottomNavBar**: Navigacija kroz aplikaciju.
+- **ExposedDropdownMenuBox**: Za izbor entiteta, opštine, dataset tipa.
+
+### 6.6. Favoriti
+- **FavoriteEntity**: Veza između korisnika i zapisa (novorođeni ili umrli).
+- **FavoriteRepository**: Upravljanje dodavanjem/uklanjanjem favorita.
+- **Dao sloj**: Upiti za provjeru, dodavanje i uklanjanje favorita.
+
+### 6.7. Autentifikacija
+- **UserEntity**: Model korisnika.
+- **UserRepository**: Upravljanje registracijom, loginom i ažuriranjem korisnika.
+- **LoginViewModel/RegisterViewModel**: Logika za validaciju i upravljanje korisničkim sesijama.
+
+### 6.8. Keširanje i offline rad
+- Prilikom svakog dohvaćanja podataka, prvo se prikazuju lokalni podaci iz Room baze.
+- Ako je dostupna mreža, podaci se ažuriraju i keširaju.
+- U slučaju greške/mrežnog problema, korisniku se prikazuju posljednji dostupni podaci.
+
+### 6.9. Upravljanje stanjem i performansama
+Jetpack Compose koristi deklarativni pristup interfejsu, što znači da se UI automatski osvježava kada se podaci promijene. Zbog toga je važno pažljivo upravljati stanjem. Aplikacija koristi MutableStateFlow unutar ViewModel-a za interno upravljanje stanjem, a StateFlow za izlaganje UI sloju. Ova kombinacija omogućava kontrolisan i efikasan re-render komponenti.
+
+kotlin
+Copy
+Edit
+private val _uiState = MutableStateFlow<List<DeathsEntry>>(emptyList())
+val uiState: StateFlow<List<DeathsEntry>> = _uiState
+ViewModel emituje novo stanje svaki put kada se izvrši nova pretraga, filtriranje ili dohvat sa API-ja. UI (npr. DeathsListScreen) automatski prikazuje novu listu bez potrebe za ručnim pozivom notifyDataSetChanged() kao u klasičnom Android pristupu.
+
+Uz to, koristi se remember, derivedStateOf i LaunchedEffect kako bi se izbjeglo nepotrebno ponovno učitavanje podataka. Na primjer, filtrirani podaci se ne preračunavaju ako filteri ostaju isti.
+
+### 6.10. Error handling i prikaz grešaka
+Aplikacija koristi Resource wrapper klasu za obradu stanja učitavanja (Loading), uspjeha (Success) i greške (Error). Na osnovu stanja, UI prikazuje odgovarajuće komponente:
+
+Loading: CircularProgressIndicator
+
+Error: Poruka o grešci + opcionalno dugme za pokušaj ponovo
+
+Success: Prikaz podataka
+
+Primjer korištenja:
+
+kotlin
+Copy
+Edit
+when (val result = viewModel.uiState.collectAsState().value) {
+    is Resource.Loading -> CircularProgressIndicator()
+    is Resource.Success -> ShowData(result.data)
+    is Resource.Error -> Text("Greška: ${result.message}")
+}
+
+### 6.11. Testiranje aplikacije
+Za potrebe testiranja, aplikacija koristi modularnu arhitekturu što omogućava:
+
+Jedinčno testiranje ViewModel-a uz korištenje runTest i Turbine
+
+Instrumentacijske testove Compose UI-a preko composeTestRule
+
+Testiranje Room DAO sloja koristeći inMemoryDatabaseBuilder i runBlocking
+
+Primjer test ViewModel-a:
+
+kotlin
+Copy
+Edit
+@Test
+fun testFilterReturnsExpectedResults() = runTest {
+    val viewModel = DeathsViewModel(repository)
+    viewModel.setYear(2023)
+    viewModel.setMunicipality("Sarajevo")
+    val result = viewModel.uiState.first()
+    assert(result.isNotEmpty())
+}
+
+### 6.12. Responsivnost i orijentacija
+Aplikacija je dizajnirana tako da automatski reaguje na promjene veličine ekrana i orijentacije uređaja. Korišteni su Modifier.fillMaxSize(), Spacer, BoxWithConstraints i LazyColumn za postizanje prilagodljivosti.
+
+Takođe, Scaffold komponenta se koristi za strukturiranje ekrana s podrškom za TopAppBar, BottomBar, FloatingActionButton, što čini interfejs čitljivim i dosljednim na različitim uređajima.
+
+### 6.13. Dijeljenje kroz više aplikacija i formatiranje teksta
+Podaci koji se dijele kroz Intent.ACTION_SEND su pažljivo formatirani. Na primjer, u slučaju umrlih, korisnik dijeli poruku u obliku:
+
+makefile
+Copy
+Edit
+Statistika umrlih – Sarajevo 2023:
+Muškarci: 102
+Žene: 94
+Ukupno: 196
+Podaci preuzeti sa Portala Otvorenih Podataka BiH.
+To omogućava korisniku da informaciju lako proslijedi putem e-maila, društvenih mreža ili instant poruka.
+
+### 6.14. Detalji o lokalnoj sesiji
+Prilikom prijave, korisnički podaci se čuvaju lokalno putem DataStore kako bi se sačuvala sesija čak i nakon zatvaranja aplikacije. Takođe, SessionManager klasa omogućava jednostavnu provjeru da li je korisnik već prijavljen, i automatski ga vodi na početni ekran bez potrebe za ponovnim loginom.
+
+Primjer:
+
+kotlin
+Copy
+Edit
+if (sessionManager.isLoggedIn()) {
+    navController.navigate("home")
+} else {
+    navController.navigate("login")
+}
+
+### 6.15. Preporučene prakse i skalabilnost
+Cijela arhitektura aplikacije je projektovana da omogući lako dodavanje novih dataset-ova. Ako se ODP BiH otvori za nove podatke (npr. migracije, obrazovanje, zaposlenost), dovoljno je:
+
+Dodati novi ApiService i Entity
+
+Implementirati novi Repository i ViewModel
+
+Napraviti novi ekran za prikaz podataka
+
+---
+
+## 7. Verzijsko upravljanje i zavisnosti
+- **libs.versions.toml** koristi se za centralizirano upravljanje verzijama svih zavisnosti.
+- **build.gradle.kts** koristi alias-e iz `libs.versions.toml` za deklaraciju zavisnosti.
+- Glavne biblioteke: Compose, Room, Retrofit, Moshi, Gson, DataStore, Accompanist (SwipeRefresh), Navigation Compose.
+
+---
+
+## 8. Sigurnost i privatnost
+- Svi korisnički podaci (email, lozinka, favoriti, preferencije) čuvaju se lokalno i nisu izloženi trećim stranama.
+- API tokeni se čuvaju u `BuildConfig` i nisu hardkodirani u kodu.
+
+---
+
+## 9. Potencijalna proširenja
+- **Integracija Hilt-a** za automatski dependency injection.
+- **Dodavanje naprednih chartova** (npr. MPAndroidChart) za još bogatiji vizualni prikaz.
+- **Push notifikacije** za obavještenja o novim podacima.
+- **Višejezičnost** (trenutno je aplikacija na bosanskom/srpskom/hrvatskom jeziku).
+- **Web verzija** aplikacije.
+
+---
+
+## 10. Zaključak
+
+Aplikacija **WebApiApplication** je moćan alat za pregled, analizu i dijeljenje javnih podataka iz Bosne i Hercegovine. Kroz intuitivan korisnički interfejs, napredne mogućnosti filtriranja i sortiranja, te podršku za offline rad i personalizaciju, aplikacija omogućava korisnicima da brzo dođu do relevantnih informacija. Implementacija je modularna, proširiva i koristi moderne Android tehnologije, što olakšava održavanje i budući razvoj.
+
+---
+
+## 11. Reference na screenshotove
+- **Onboarding:** `docs/screenshots/onboarding.png`
+- **Login:** `docs/screenshots/login.png`
+- **Register:** `docs/screenshots/register.png`
+- **Home:** `docs/screenshots/homepage.png`
+- **Details:** `docs/screenshots/details.png`
+- **Favorites:** `docs/screenshots/favorites.png`
+- **Profile:** `docs/screenshots/profile.png`
+
+---
+
+## 12. Prilog: Primjeri koda
+
+### **Primjer: Prikaz dataset-a u HomeScreen-u**
 ```kotlin
-class NewbornViewModel(
-    private val repository: NewbornRepository
-) : ViewModel()
+LazyColumn(
+    contentPadding = PaddingValues(16.dp),
+    verticalArrangement = Arrangement.spacedBy(12.dp)
+) {
+    items(data) { item ->
+        DatasetCard(item)
+    }
+}
 ```
 
-### Repository klase
-
-- `NewbornRepository`, `DeathsRepository`, `DatasetRepository`, `FavoriteRepository`, `UserRepository`
-- Apstrahiraju pristup podacima (Room + Retrofit)
-- Sadrže suspend funkcije i Flow za reaktivno dohvaćanje podataka
-
-**Primjer potpisa:**
+### **Primjer: Dodavanje u favorite**
 ```kotlin
-class NewbornRepository(
-    private val newbornDao: NewbornDao,
-    private val apiService: NewbornApiService
-)
+IconButton(onClick = { viewModel.toggleFavorite(entry) }) {
+    Icon(
+        imageVector = if (isFav) Icons.Filled.Star else Icons.Outlined.Star,
+        contentDescription = if (isFav) "Ukloni iz favorita" else "Dodaj u favorite",
+        tint = if (isFav) Color.Yellow else Color.Gray
+    )
+}
 ```
 
-### DAO objekti
-
-- `NewbornDao`, `DeathsDao`, `FavoriteDao`, `DatasetDao`, `UserDao`
-- Definiraju SQL upite za Room bazu
-- Annotirani s `@Dao`
-
-**Primjer potpisa:**
+### **Primjer: Dijeljenje podataka**
 ```kotlin
-@Dao
-interface NewbornDao
-```
-
-### Ključne Composable funkcije
-
-- `HomeScreen`, `NewbornListScreen`, `DeathsListScreen`, `DetailsScreen`, `FavoritesScreen`, `ProfileScreen`, `LoginScreen`, `RegisterScreen`, `OnboardingScreen`, `SplashScreen`
-- Svaka funkcija prikazuje određeni ekran i koristi ViewModel za podatke
-
-**Primjer potpisa:**
-```kotlin
-@Composable
-fun NewbornListScreen(
-    viewModel: NewbornViewModel,
-    onItemClick: (Int) -> Unit
-)
+val sendIntent = Intent().apply {
+    action = Intent.ACTION_SEND
+    putExtra(Intent.EXTRA_TEXT, shareText)
+    type = "text/plain"
+}
+val shareIntent = Intent.createChooser(sendIntent, null)
+context.startActivity(shareIntent)
 ```
 
 ---
 
-## 5. Korištene Android i Jetpack biblioteke
+## 13. Kontakt i podrška
 
-### Room
-
-- Omogućava lokalno spremanje podataka
-- Entity, DAO, Database klase
-
-### ViewModel
-
-- Upravljanje stanjem neovisno o životnom ciklusu ekrana
-
-### Jetpack Compose
-
-- Deklarativni UI framework
-- Upravljanje stanjem: `State`, `remember`, `mutableStateOf`
-- Životni ciklus Composable funkcija
-
-### Coroutines i Flow
-
-- Asinhrono programiranje
-- Flow za reaktivno emitiranje podataka
-
-### Retrofit
-
-- HTTP klijent za komunikaciju s REST API-jem
-
-### Navigacija u Compose
-
-- Navigacija između ekrana pomoću NavHost i NavController
-
-### Material 3 Theming
-
-- Moderni dizajn i theming aplikacije
+Za sva pitanja, prijedloge ili prijavu grešaka, kontaktirajte autora aplikacije ili otvorite issue na repozitoriju.
 
 ---
 
-## 6. Zaključak
-
-Aplikacija je modularna, skalabilna i koristi najbolje prakse modernog Android razvoja. MVVM arhitektura, Jetpack Compose i ostale Jetpack biblioteke omogućavaju jednostavno održavanje i proširivanje funkcionalnosti.
+**Ova dokumentacija je namijenjena i krajnjim korisnicima i developerima, te pokriva sve aspekte aplikacije, od funkcionalnosti do tehničke implementacije. Ako su potrebne dodatne sekcije ili detalji, slobodno tražite!**
 
 ---
 
-**Mjesto za slike ekrana:**  
-Preporučujem da slike ekrana smjestiš u folder `docs/screenshots/` i u dokumentaciji ih referenciraš ovako:
+## 14. Dodatne napomene i motivacija
 
-```md
-![Naslov slike](docs/screenshots/home.png)
-``` 
+Otvoreni podaci predstavljaju ključan resurs za razvoj transparentnog društva i unapređenje javnih servisa. Aplikacija "WebApiApplication" ima za cilj da približi ove podatke široj javnosti, omogući lakšu analizu i podstakne građane, istraživače i donosioce odluka na korištenje javno dostupnih informacija. 
+
+Kroz kontinuirano održavanje i nadogradnju, aplikacija će pratiti nove trendove u razvoju Android aplikacija i otvorenih podataka. Planirano je proširenje funkcionalnosti, uključujući naprednije vizualizacije, integraciju s dodatnim izvorima podataka i podršku za višejezičnost, čime će aplikacija postati još korisnija i pristupačnija svim korisnicima.
+
+Za sva dodatna pitanja, prijedloge ili podršku, korisnici se mogu obratiti putem kontakt forme ili direktno na e-mail autora. Vaše povratne informacije su dragocjene za dalji razvoj i unapređenje aplikacije. 
