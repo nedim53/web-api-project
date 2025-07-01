@@ -82,71 +82,136 @@ Svi API-ji koriste baznu adresu `https://odp.iddeea.gov.ba/` ili port `8096` za 
 ## 5. Opis ekrana i korisničkog interfejsa (uz reference na screenshotove)
 
 ### 5.1. Splash Screen
+
 - **Opis:** Prikazuje logo aplikacije i inicijalno učitava podatke.
-- **Screenshot:** `docs/screenshots/splash.png`
-- **Detalji:** Kratka animacija ili statički prikaz prije preusmjeravanja na login ili onboarding.
+- **Screenshot:**
+
+![Splash Screen](docs/screenshots/splash.png)
+
+- **Detalji:** Kratka animacija ili statički prikaz prije preusmjeravanja na login ili onboarding. Ovaj ekran daje prvi vizuelni identitet aplikacije i osigurava korisniku da je aplikacija uspješno pokrenuta.
+
+---
 
 ### 5.2. Onboarding Screen
+
 - **Opis:** Prvi ekran nakon instalacije ili prijave, gdje korisnik bira:
   - Kategoriju podataka (Novorođeni, Izvještaji o smrtima)
   - Entitet (FBiH, RS, Brčko)
   - Opštinu (iz padajuće liste ili unosom)
   - Godinu (ručni unos)
-- **Screenshot:** `docs/screenshots/onboarding.png`
-- **Detalji:** Svi izbori su sačuvani u DataStore i mogu se kasnije mijenjati. UI koristi `ExposedDropdownMenuBox` za padajuće liste.
+- **Screenshot:**
+
+![Onboarding Screen](docs/screenshots/onboarding.png)
+
+- **Detalji:** Svi izbori su sačuvani u DataStore i mogu se kasnije mijenjati. UI koristi `ExposedDropdownMenuBox` za padajuće liste. Onboarding vodi korisnika kroz osnovne postavke aplikacije, omogućavajući personalizaciju prikaza podataka od samog početka.
+
+---
 
 ### 5.3. Login Screen
+
 - **Opis:** Ekran za prijavu korisnika sa emailom i lozinkom.
-- **Screenshot:** `docs/screenshots/login.png`
-- **Detalji:** Prikazuje validacijske poruke za pogrešan unos. Dugme za prebacivanje na registraciju.
+- **Screenshot:**
+
+![Login Screen](docs/screenshots/login.png)
+
+- **Detalji:**
+  - Korisnik unosi email i lozinku u predviđena polja.
+  - Prikazuju se validacijske poruke za pogrešan unos (npr. neispravan email ili prazna polja).
+  - Dugme za prijavu postaje aktivno tek kada su svi podaci validni.
+  - Postoji opcija za prebacivanje na ekran za registraciju.
+  - Nakon uspješne prijave, korisnik se preusmjerava na početni ekran aplikacije.
+  - Ovaj proces osigurava sigurnost i personalizaciju korisničkog iskustva.
+
+---
 
 ### 5.4. Register Screen
+
 - **Opis:** Ekran za registraciju novog korisnika.
-- **Screenshot:** `docs/screenshots/register.png`
-- **Detalji:** Polja za ime, prezime, email, lozinku, potvrdu lozinke, telefon i adresu. Validacija svih polja i prikaz grešaka.
+- **Screenshot:**
+
+![Register Screen](docs/screenshots/register.png)
+
+- **Detalji:**
+  - Polja za ime, prezime, email, lozinku, potvrdu lozinke, telefon i adresu.
+  - Validacija svih polja i prikaz grešaka (npr. neusklađene lozinke, neispravan email).
+  - Nakon uspješne registracije, korisnik se automatski prijavljuje i preusmjerava na onboarding ili početni ekran.
+
+---
 
 ### 5.5. Home Screen
+
 - **Opis:** Glavni ekran sa listom podataka iz odabranog dataset-a.
-- **Screenshot:** `docs/screenshots/homepage.png`
-- **Detalji:** 
+- **Screenshot:**
+
+![Home Screen](docs/screenshots/homepage.png)
+
+- **Detalji:**
   - Prikaz podataka u listi (`LazyColumn`).
   - Svaki podatak prikazan kroz custom komponentu `DatasetCard`.
   - Top bar sa nazivom "ODP BiH - Podaci".
   - Navigacija putem donje trake (`BottomNavBar`).
+  - Omogućeno brzo pretraživanje i filtriranje podataka.
+
+---
 
 ### 5.6. Deaths List Screen
+
 - **Opis:** Prikaz liste umrlih sa mogućnošću filtriranja i sortiranja.
-- **Detalji:** 
+- **Screenshot:**
+
+*(Ovaj ekran može biti prikazan unutar Home Screen-a, pa nije izdvojen poseban screenshot.)*
+
+- **Detalji:**
   - Filtriranje po opštini (pretraga), entitetu, godini.
   - Sortiranje po godini, ukupnom broju, opštini.
   - Svaki zapis ima dugme za dodavanje u favorite.
   - Swipe-to-refresh podrška.
-- **Screenshot:** (nije eksplicitno naveden, ali može biti dio `homepage.png`)
+
+---
 
 ### 5.7. Details Screen (DeathsDetailsScreen)
+
 - **Opis:** Prikaz detalja za pojedinačni zapis o umrlima.
-- **Screenshot:** `docs/screenshots/details.png`
+- **Screenshot:**
+
+![Details Screen](docs/screenshots/details.png)
+
 - **Detalji:**
   - Prikaz svih atributa (entitet, kanton, opština, ustanova, godina, mjesec, ukupno, ažurirano).
   - **Grafički prikaz:** Bar chart sa brojem umrlih po spolu i ukupno.
   - Dugme za dijeljenje podataka (share).
   - Dugme za dodavanje/uklanjanje iz favorita.
+  - Ovaj ekran omogućava korisniku detaljan uvid u podatke i dodatne akcije nad zapisom.
+
+---
 
 ### 5.8. Favorites Screen
+
 - **Opis:** Prikaz svih omiljenih zapisa korisnika.
-- **Screenshot:** `docs/screenshots/favorites.png`
-- **Detalji:** 
+- **Screenshot:**
+
+![Favorites Screen](docs/screenshots/favorites.png)
+
+- **Detalji:**
   - Prikazani su favoriti iz oba dataset-a (novorođeni i umrli).
   - Klikom na zapis otvara se detaljan prikaz.
   - Ako nema favorita, prikazuje se poruka "Nema sačuvanih podataka".
+  - Ovaj ekran omogućava brz pristup najvažnijim podacima za korisnika.
+
+---
 
 ### 5.9. Profile Screen
+
 - **Opis:** Prikaz korisničkog profila.
-- **Screenshot:** `docs/screenshots/profile.png`
-- **Detalji:** 
+- **Screenshot:**
+
+![Profile Screen](docs/screenshots/profile.png)
+
+- **Detalji:**
   - Prikaz imena, prezimena, emaila, telefona i adrese.
   - Dugme za promjenu preferencija (vraća na onboarding).
   - Dugme za odjavu.
+  - Ovaj ekran omogućava korisniku upravljanje ličnim podacima i preferencijama.
 
 ---
 
