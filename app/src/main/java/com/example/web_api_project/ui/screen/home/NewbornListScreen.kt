@@ -42,7 +42,7 @@ fun NewbornListScreen(
     var municipality by remember { mutableStateOf("") }
     val state by viewModel.state.collectAsState()
     val favoriteIds by viewModel.favoriteIds.collectAsState()
-    val token = "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIyMDk1IiwibmJmIjoxNzUwMjY5OTE4LCJleHAiOjE3NTAzNTYzMTgsImlhdCI6MTc1MDI2OTkxOH0.P5Q6T786VSUZmanQDMKBN60wtjB6QT8dRyLGc-e_XROEaaMVrIdp8VweqIIZWIWlUkrB8chKxztxD7BIbi6A6w"
+    val token = "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIyMDk1IiwibmJmIjoxNzUxMzY4Njk1LCJleHAiOjE3NTE0NTUwOTUsImlhdCI6MTc1MTM2ODY5NX0.CXDKVBTFRBnGfDoBnPOPu8fsgWw9w6PPgx4vBvXL-wWjfoh1sP3PhYor9finblH887aGBRd9T8IO4m5AibHkew"
     var isRefreshing by remember { mutableStateOf(false) }
     var datasetType by remember { mutableStateOf("Novorođeni") }
 
@@ -95,7 +95,10 @@ fun NewbornListScreen(
                 ) {
                     OutlinedTextField(
                         value = searchText,
-                        onValueChange = { searchText = it },
+                        onValueChange = {
+                            searchText = it
+                            viewModel.loadData(token, year, entity, searchQuery = if (it.isNotBlank()) it else null)
+                        },
                         label = { Text("Pretraži opštinu") },
                         modifier = Modifier.weight(1f)
                     )
@@ -133,7 +136,7 @@ fun NewbornListScreen(
                     state = rememberSwipeRefreshState(isRefreshing),
                     onRefresh = {
                         isRefreshing = true
-                        viewModel.loadData(token, year, entity)
+                        viewModel.loadData(token, year, entity, searchQuery = if (searchText.isNotBlank()) searchText else null)
                     }
                 ) {
                     when (state) {
@@ -146,8 +149,6 @@ fun NewbornListScreen(
                         is NewbornResource.Success -> {
                             isRefreshing = false
                             var data = (state as NewbornResource.Success).data
-                            // Lokalno filtriranje po opštini
-                            data = if (searchText.isNotBlank()) data.filter { it.municipality?.contains(searchText, ignoreCase = true) == true } else data
                             // Sortiranje
                             data = when (sortOption) {
                                 "Godina" -> data.sortedWith(compareByDescending<NewbornEntry> { it.year }.thenByDescending { it.month })

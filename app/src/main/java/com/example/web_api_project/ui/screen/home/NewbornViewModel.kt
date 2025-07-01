@@ -60,9 +60,9 @@ class NewbornViewModel(application: Application) : AndroidViewModel(application)
             .map { it.newbornId!! }
     }
 
-    fun loadData(token: String, year: Int, entity: String, municipality: String? = null) {
+    fun loadData(token: String, year: Int, entity: String, municipality: String? = null, searchQuery: String? = null) {
         viewModelScope.launch {
-            repository.getNewborns(token, year, entity, municipality).collect {
+            repository.getNewborns(token, year, entity, municipality, searchQuery).collect {
                 _state.value = it
                 val newborns = db.newbornDao().getAll()
                 newbornKeyToId.clear()

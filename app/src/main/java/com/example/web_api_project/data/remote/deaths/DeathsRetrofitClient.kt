@@ -6,7 +6,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 object DeathsRetrofitClient {
     private const val BASE_URL = "https://odp.iddeea.gov.ba:8096/"
-    private const val TOKEN = "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIyMDk1IiwibmJmIjoxNzUxMjg4NTcxLCJleHAiOjE3NTEzNzQ5NzEsImlhdCI6MTc1MTI4ODU3MX0.UMP-vDUID1omaG0uEAioFB5TKEVilJlpEh5joF_yj4J3qPeWz-fCpfPg5MWyjEaYL662wkAsonxeRYH2DAkocg"
+    private const val TOKEN = "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIyMDk1IiwibmJmIjoxNzUxMzY4Njk1LCJleHAiOjE3NTE0NTUwOTUsImlhdCI6MTc1MTM2ODY5NX0.CXDKVBTFRBnGfDoBnPOPu8fsgWw9w6PPgx4vBvXL-wWjfoh1sP3PhYor9finblH887aGBRd9T8IO4m5AibHkew"
 
     fun getClient(token: String = TOKEN): DeathsApiService {
         val client = OkHttpClient.Builder()
